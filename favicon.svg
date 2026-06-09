@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#1e1e2e"/>
+  <text x="5" y="14" font-family="monospace" font-size="11" font-weight="bold" fill="#89b4fa">$_</text>
+  <text x="5" y="26" font-family="monospace" font-size="10" fill="#a6e3a1">bash</text>
+</svg>

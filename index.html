@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>Bash 学习教程 — 从零到实战</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<style>
+:root {
+  --bg: #0d1117; --bg2: #161b22; --bg3: #21262d; --bg4: #30363d;
+  --fg: #e6edf3; --fg2: #8b949e; --fg3: #6e7681;
+  --accent: #58a6ff; --accent2: #1f6feb; --green: #3fb950; --yellow: #d29922;
+  --red: #f85149; --purple: #bc8cff; --orange: #f0883e;
+  --border: #30363d; --radius: 8px; --shadow: 0 2px 8px rgba(0,0,0,.3);
+  --sidebar-w: 280px; --header-h: 56px;
+}
+.light {
+  --bg: #ffffff; --bg2: #f6f8fa; --bg3: #eaeef2; --bg4: #d0d7de;
+  --fg: #1f2328; --fg2: #656d76; --fg3: #8b949e;
+  --accent: #0969da; --accent2: #0550ae; --green: #1a7f37; --yellow: #9a6700;
+  --red: #cf222e; --purple: #8250df; --orange: #bc4c00;
+  --border: #d0d7de; --shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  background: var(--bg); color: var(--fg); line-height: 1.6;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Header */
+.header {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; z-index: 100;
+  gap: 16px;
+}
+.header .logo { font-size: 18px; font-weight: 700; white-space: nowrap; }
+.header .logo span { color: var(--accent); }
+.search-box {
+  flex: 1; max-width: 400px; position: relative;
+}
+.search-box input {
+  width: 100%; padding: 6px 12px 6px 32px; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--fg); font-size: 14px; outline: none;
+}
+.search-box input:focus { border-color: var(--accent); }
+.search-box::before {
+  content: '🔍'; position: absolute; left: 8px; top: 50%;
+  transform: translateY(-50%); font-size: 13px;
+}
+.header-actions { display: flex; gap: 8px; margin-left: auto; }
+.header-actions button {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--fg); padding: 6px 12px; cursor: pointer; font-size: 13px;
+}
+.header-actions button:hover { background: var(--bg4); }
+
+/* Sidebar */
+.sidebar {
+  position: fixed; top: var(--header-h); left: 0; bottom: 0;
+  width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border);
+  overflow-y: auto; overflow-x: hidden; padding: 16px 0; z-index: 90;
+  transition: transform .3s;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px; cursor: pointer; transition: background .15s;
+  border-left: 3px solid transparent; font-size: 14px; overflow: hidden;
+}
+.sidebar-item:hover { background: var(--bg3); }
+.sidebar-item.active { background: var(--bg3); border-left-color: var(--accent); color: var(--accent); }
+.sidebar-item .icon { font-size: 18px; width: 24px; text-align: center; }
+.sidebar-item .info { flex: 1; min-width: 0; }
+.sidebar-item .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-item .diff { font-size: 11px; color: var(--fg3); white-space: nowrap; }
+.sidebar-item .progress-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--bg4);
+}
+.sidebar-item .progress-dot.done { background: var(--green); }
+.sidebar-section { padding: 8px 20px 4px; font-size: 11px; color: var(--fg3); text-transform: uppercase; letter-spacing: 1px; }
+
+/* Main content */
+.main {
+  margin-left: var(--sidebar-w); margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h)); padding: 32px 48px;
+  max-width: 960px;
+}
+
+/* Landing page */
+.landing { text-align: center; padding: 60px 0; }
+.landing h1 { font-size: 42px; margin-bottom: 12px; }
+.landing h1 span { color: var(--accent); }
+.landing .subtitle { font-size: 18px; color: var(--fg2); margin-bottom: 48px; }
+.project-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px; text-align: left; max-width: 900px; margin: 0 auto;
+}
+.project-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; cursor: pointer; transition: all .2s; position: relative;
+}
+.project-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+.project-card .card-icon { font-size: 32px; margin-bottom: 12px; }
+.project-card .card-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.project-card .card-desc { font-size: 13px; color: var(--fg2); margin-bottom: 12px; }
+.project-card .card-footer { display: flex; justify-content: space-between; align-items: center; }
+.project-card .card-diff { font-size: 12px; color: var(--yellow); }
+.project-card .card-progress {
+  height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; flex: 1; margin-left: 12px;
+}
+.project-card .card-progress-bar { height: 100%; background: var(--green); border-radius: 2px; transition: width .3s; width: 0; }
+.project-card .card-badge {
+  position: absolute; top: 12px; right: 12px; font-size: 11px;
+  padding: 2px 8px; border-radius: 12px; background: var(--green); color: #fff;
+  display: none;
+}
+.project-card.completed .card-badge { display: block; }
+
+/* Article content */
+.article { display: none; }
+.article.visible { display: block; }
+.article-header { margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.article-header h1 { font-size: 28px; margin-bottom: 8px; }
+.article-header .meta { color: var(--fg2); font-size: 14px; display: flex; gap: 16px; flex-wrap: wrap; }
+.article-nav {
+  display: flex; justify-content: space-between; margin-top: 48px; padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.article-nav button {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--fg); padding: 8px 16px; cursor: pointer; font-size: 14px;
+}
+.article-nav button:hover { background: var(--bg4); }
+.article-nav button:disabled { opacity: .4; cursor: default; }
+
+/* Markdown rendered content */
+.md-content h1 { font-size: 24px; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.md-content h2 { font-size: 20px; margin: 28px 0 12px; color: var(--accent); }
+.md-content h3 { font-size: 17px; margin: 24px 0 10px; }
+.md-content h4 { font-size: 15px; margin: 20px 0 8px; color: var(--purple); }
+.md-content p { margin: 8px 0; }
+.md-content ul, .md-content ol { margin: 8px 0 8px 24px; }
+.md-content li { margin: 4px 0; }
+.md-content table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+.md-content th, .md-content td { padding: 8px 12px; border: 1px solid var(--border); text-align: left; }
+.md-content th { background: var(--bg3); font-weight: 600; }
+.md-content tr:hover { background: var(--bg2); }
+.md-content blockquote {
+  border-left: 3px solid var(--accent); padding: 8px 16px; margin: 16px 0;
+  background: var(--bg2); border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--fg2);
+}
+.md-content img { max-width: 100%; border-radius: var(--radius); }
+.md-content hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+.md-content pre {
+  position: relative; margin: 12px 0; border-radius: var(--radius);
+  overflow-x: auto;
+}
+.md-content pre code {
+  display: block; padding: 16px; white-space: pre-wrap; word-wrap: break-word;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px; line-height: 1.5;
+}
+.md-content code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: .9em; padding: 2px 6px; background: var(--bg3); border-radius: 4px;
+}
+.md-content pre code { padding: 16px; background: transparent; }
+.copy-btn {
+  position: absolute; top: 6px; right: 6px; background: var(--bg4);
+  border: 1px solid var(--border); border-radius: 4px; color: var(--fg2);
+  padding: 4px 8px; font-size: 11px; cursor: pointer; opacity: 0;
+  transition: opacity .15s;
+}
+.md-content pre:hover .copy-btn { opacity: 1; }
+.copy-btn:hover { background: var(--accent); color: #fff; }
+
+/* TOC */
+.toc {
+  position: fixed; right: 20px; top: calc(var(--header-h) + 20px);
+  width: 200px; max-height: calc(100vh - var(--header-h) - 40px);
+  overflow-y: auto; font-size: 12px; display: none;
+}
+.toc.visible { display: block; }
+.toc-title { font-weight: 600; color: var(--fg2); margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+.toc a {
+  display: block; padding: 3px 0 3px 12px; color: var(--fg3);
+  border-left: 2px solid transparent; transition: all .15s;
+}
+.toc a:hover { color: var(--fg); text-decoration: none; }
+.toc a.active { color: var(--accent); border-left-color: var(--accent); }
+.toc a.toc-h3 { padding-left: 24px; }
+
+/* Progress bar at top */
+.progress-top {
+  position: fixed; top: var(--header-h); left: 0; right: 0; height: 3px;
+  background: var(--bg3); z-index: 95;
+}
+.progress-top-bar { height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+
+/* Scroll to top */
+.scroll-top {
+  position: fixed; bottom: 24px; right: 24px; width: 40px; height: 40px;
+  background: var(--accent); color: #fff; border: none; border-radius: 50%;
+  font-size: 18px; cursor: pointer; opacity: 0; transition: opacity .2s;
+  display: flex; align-items: center; justify-content: center; z-index: 90;
+}
+.scroll-top.visible { opacity: 1; }
+
+/* Search results dropdown */
+.search-results {
+  position: absolute; top: 100%; left: 0; right: 0; background: var(--bg2);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  max-height: 300px; overflow-y: auto; display: none; z-index: 200;
+  box-shadow: var(--shadow);
+}
+.search-results.visible { display: block; }
+.search-result-item {
+  padding: 8px 12px; cursor: pointer; font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.search-result-item:hover { background: var(--bg3); }
+.search-result-item .sr-title { font-weight: 500; }
+.search-result-item .sr-context { color: var(--fg3); font-size: 12px; margin-top: 2px; }
+.search-result-item mark { background: var(--yellow); color: #000; border-radius: 2px; padding: 0 2px; }
+
+/* Stats section on landing */
+.stats {
+  display: flex; justify-content: center; gap: 40px; margin: 40px 0;
+  padding: 24px; background: var(--bg2); border-radius: 12px;
+  border: 1px solid var(--border); max-width: 600px; margin-left: auto; margin-right: auto;
+}
+.stat { text-align: center; }
+.stat .num { font-size: 28px; font-weight: 700; color: var(--accent); }
+.stat .label { font-size: 12px; color: var(--fg3); }
+
+/* Responsive */
+@media (max-width: 1200px) { .toc { display: none !important; } }
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; padding: 20px; }
+  .header .menu-btn { display: block; }
+}
+.header .menu-btn { display: none; background: none; border: none; color: var(--fg); font-size: 20px; cursor: pointer; }
+
+/* Collapsible sections */
+.collapsible-toggle {
+  cursor: pointer; user-select: none; display: inline-block;
+  margin-right: 6px; transition: transform .2s; color: var(--fg3);
+}
+.collapsible-toggle.open { transform: rotate(90deg); }
+.collapsible-content { overflow: hidden; transition: max-height .3s ease; }
+.collapsible-content.collapsed { max-height: 0 !important; }
+
+/* Print */
+@media print {
+  .sidebar, .header, .toc, .scroll-top, .progress-top { display: none !important; }
+  .main { margin: 0; padding: 20px; max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+  <div class="logo">🐚 <span>Bash</span> 学习教程</div>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="搜索内容..." oninput="onSearch(this.value)" onfocus="onSearchFocus()" onblur="setTimeout(()=>hideSearch(),200)">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+  <div class="header-actions">
+    <button onclick="toggleTheme()" title="切换主题">🌓</button>
+    <button onclick="resetProgress()" title="重置进度">🔄</button>
+    <button onclick="showLanding()" title="首页">🏠</button>
+  </div>
+</div>
+
+<div class="progress-top"><div class="progress-top-bar" id="readingProgress"></div></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-section">课程目录</div>
+  <div id="sidebarItems"></div>
+</div>
+
+<div class="toc" id="toc">
+  <div class="toc-title">目录</div>
+  <div id="tocItems"></div>
+</div>
+
+<div class="main" id="main">
+  <!-- Landing page -->
+  <div id="landing" class="landing">
+    <h1>🐚 <span>Bash</span> 从零到实战</h1>
+    <p class="subtitle">6 个渐进式项目，系统掌握 Shell 脚本编程</p>
+    <div class="stats" id="stats"></div>
+    <div class="project-grid" id="projectGrid"></div>
+  </div>
+
+  <!-- Article pages -->
+  <div id="articleContainer"></div>
+
+  <div class="article-nav" id="articleNav" style="display:none">
+    <button id="prevBtn" onclick="navigateProject(-1)">← 上一课</button>
+    <button id="markComplete" onclick="toggleComplete()">✓ 标记完成</button>
+    <button id="nextBtn" onclick="navigateProject(1)">下一课 →</button>
+  </div>
+</div>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0})">↑</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="content.js"></script>
+<script>
+// --- State ---
+let currentProject = null;
+const STORAGE_KEY = 'bash-learn-progress';
+
+// --- Init ---
+function init() {
+  renderSidebar();
+  renderLanding();
+  renderArticleContainers();
+  loadTheme();
+  window.addEventListener('scroll', onScroll);
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { showLanding(); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+  });
+  // Handle URL hash
+  if (location.hash) {
+    const id = location.hash.slice(1);
+    if (PROJECTS.find(p => p.id === id)) showProject(id);
+  }
+}
+
+// --- Theme ---
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  localStorage.setItem('bash-theme', document.body.classList.contains('light') ? 'light' : 'dark');
+}
+function loadTheme() {
+  if (localStorage.getItem('bash-theme') === 'light') document.body.classList.add('light');
+}
+
+// --- Progress ---
+function getProgress() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function saveProgress(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
+function toggleComplete() {
+  if (!currentProject) return;
+  const p = getProgress();
+  p[currentProject] = !p[currentProject];
+  saveProgress(p);
+  renderSidebar();
+  renderLanding();
+  updateMarkButton();
+}
+function resetProgress() {
+  if (confirm('确定重置所有学习进度？')) {
+    localStorage.removeItem(STORAGE_KEY);
+    renderSidebar();
+    renderLanding();
+    updateMarkButton();
+  }
+}
+function updateMarkButton() {
+  const btn = document.getElementById('markComplete');
+  const p = getProgress();
+  btn.textContent = p[currentProject] ? '✗ 取消完成' : '✓ 标记完成';
+}
+function getCompletedCount() {
+  return Object.values(getProgress()).filter(Boolean).length;
+}
+
+// --- Sidebar ---
+function renderSidebar() {
+  const el = document.getElementById('sidebarItems');
+  const prog = getProgress();
+  el.innerHTML = PROJECTS.map(proj => `
+    <div class="sidebar-item ${currentProject===proj.id?'active':''}" onclick="showProject('${proj.id}')">
+      <span class="icon">${proj.icon}</span>
+      <div class="info">
+        <div class="title">${proj.title.split('—')[0].trim()}</div>
+        <div class="diff">${proj.difficulty}</div>
+      </div>
+      <div class="progress-dot ${prog[proj.id]?'done':''}"></div>
+    </div>
+  `).join('');
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// --- Landing ---
+function renderLanding() {
+  const prog = getProgress();
+  const completed = getCompletedCount();
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="num">${PROJECTS.length}</div><div class="label">项目</div></div>
+    <div class="stat"><div class="num">${completed}</div><div class="label">已完成</div></div>
+    <div class="stat"><div class="num">${Math.round(completed/PROJECTS.length*100)}%</div><div class="label">进度</div></div>
+  `;
+  document.getElementById('projectGrid').innerHTML = PROJECTS.map(proj => `
+    <div class="project-card ${prog[proj.id]?'completed':''}" onclick="showProject('${proj.id}')">
+      <div class="card-badge">已完成</div>
+      <div class="card-icon">${proj.icon}</div>
+      <div class="card-title">${proj.title}</div>
+      <div class="card-desc">${proj.description}</div>
+      <div class="card-footer">
+        <span class="card-diff">${proj.difficulty}</span>
+        <div class="card-progress"><div class="card-progress-bar" style="width:${prog[proj.id]?100:0}%"></div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// --- Article rendering ---
+function renderArticleContainers() {
+  const container = document.getElementById('articleContainer');
+  marked.setOptions({
+    gfm: true, breaks: true,
+    highlight: function(code, lang) {
+      if (lang && hljs.getLanguage(lang)) return hljs.highlight(code, {language: lang}).value;
+      return hljs.highlightAuto(code).value;
+    }
+  });
+  PROJECTS.forEach(proj => {
+    const div = document.createElement('div');
+    div.className = 'article';
+    div.id = 'article-' + proj.id;
+    const rendered = marked.parse(proj.content);
+    div.innerHTML = `
+      <div class="article-header">
+        <h1>${proj.icon} ${proj.title}</h1>
+        <div class="meta">
+          <span>${proj.difficulty}</span>
+          <span>文件: ${proj.files.split(',').join(', ')}</span>
+        </div>
+      </div>
+      <div class="md-content">${rendered}</div>
+    `;
+    container.appendChild(div);
+    // Add copy buttons to code blocks
+    div.querySelectorAll('pre').forEach(pre => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = '复制';
+      btn.onclick = () => {
+        navigator.clipboard.writeText(pre.querySelector('code').textContent);
+        btn.textContent = '已复制!';
+        setTimeout(() => btn.textContent = '复制', 1500);
+      };
+      pre.style.position = 'relative';
+      pre.appendChild(btn);
+    });
+  });
+}
+
+// --- Navigation ---
+function showProject(id) {
+  currentProject = id;
+  location.hash = id;
+  document.getElementById('landing').style.display = 'none';
+  document.querySelectorAll('.article').forEach(el => el.classList.remove('visible'));
+  const article = document.getElementById('article-' + id);
+  if (article) article.classList.add('visible');
+  document.getElementById('articleNav').style.display = 'flex';
+  document.getElementById('toc').classList.add('visible');
+  renderSidebar();
+  updateMarkButton();
+  buildTOC(article);
+  window.scrollTo({top: 0});
+}
+function showLanding() {
+  currentProject = null;
+  location.hash = '';
+  document.getElementById('landing').style.display = '';
+  document.querySelectorAll('.article').forEach(el => el.classList.remove('visible'));
+  document.getElementById('articleNav').style.display = 'none';
+  document.getElementById('toc').classList.remove('visible');
+  renderSidebar();
+  window.scrollTo({top: 0});
+}
+function navigateProject(dir) {
+  const idx = PROJECTS.findIndex(p => p.id === currentProject);
+  const next = idx + dir;
+  if (next >= 0 && next < PROJECTS.length) showProject(PROJECTS[next].id);
+}
+
+// --- TOC ---
+function buildTOC(article) {
+  if (!article) return;
+  const headings = article.querySelectorAll('h1, h2, h3');
+  const tocEl = document.getElementById('tocItems');
+  tocEl.innerHTML = '';
+  headings.forEach((h, i) => {
+    const id = 'heading-' + i;
+    h.id = id;
+    const a = document.createElement('a');
+    a.href = '#' + id;
+    a.textContent = h.textContent;
+    a.className = h.tagName === 'H3' ? 'toc-h3' : '';
+    a.onclick = e => { e.preventDefault(); h.scrollIntoView({behavior:'smooth', block:'start'}); };
+    tocEl.appendChild(a);
+  });
+}
+
+// --- Search ---
+function onSearchFocus() { if (document.getElementById('searchInput').value) onSearch(document.getElementById('searchInput').value); }
+function hideSearch() { document.getElementById('searchResults').classList.remove('visible'); }
+function onSearch(query) {
+  const el = document.getElementById('searchResults');
+  if (!query || query.length < 2) { el.classList.remove('visible'); return; }
+  const q = query.toLowerCase();
+  const results = [];
+  PROJECTS.forEach(proj => {
+    const lines = proj.content.split('\n');
+    lines.forEach((line, i) => {
+      if (line.toLowerCase().includes(q)) {
+        const ctx = line.replace(/[#*`\[\]]/g, '').trim().slice(0, 100);
+        if (ctx) results.push({ id: proj.id, title: proj.title.split('—')[0].trim(), context: ctx, query });
+      }
+    });
+  });
+  if (results.length === 0) { el.innerHTML = '<div class="search-result-item">无结果</div>'; }
+  else {
+    el.innerHTML = results.slice(0, 15).map(r => {
+      const highlighted = r.context.replace(new RegExp(r.query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m => `<mark>${m}</mark>`);
+      return `<div class="search-result-item" onmousedown="showProject('${r.id}')">
+        <div class="sr-title">${r.title}</div>
+        <div class="sr-context">${highlighted}</div>
+      </div>`;
+    }).join('');
+  }
+  el.classList.add('visible');
+}
+
+// --- Scroll events ---
+function onScroll() {
+  const scrollY = window.scrollY;
+  const docH = document.documentElement.scrollHeight - window.innerHeight;
+  document.getElementById('readingProgress').style.width = docH > 0 ? (scrollY / docH * 100) + '%' : '0';
+  document.getElementById('scrollTop').classList.toggle('visible', scrollY > 300);
+  // Update TOC active state
+  if (currentProject) {
+    const article = document.getElementById('article-' + currentProject);
+    if (article) {
+      const headings = article.querySelectorAll('h1[id], h2[id], h3[id]');
+      let active = null;
+      headings.forEach(h => { if (h.getBoundingClientRect().top <= 100) active = h.id; });
+      document.querySelectorAll('#tocItems a').forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + active);
+      });
+    }
+  }
+}
+
+init();
+</script>
+</body>
+</html>
